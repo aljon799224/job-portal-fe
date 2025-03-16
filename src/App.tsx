@@ -12,6 +12,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import NotAuthorized from "./pages/NotAuthorized";
 import Profile from "./pages/Profile";
+import ProtectedRoute from "./authentication/ProtectedRoute";
 
 function App() {
 	const router = createBrowserRouter([
@@ -37,7 +38,7 @@ function App() {
 		},
 		{
 			path: "/",
-			element: <Root />,
+			element: <ProtectedRoute element={<Root />} />,
 			children: [
 				{
 					index: true,
