@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const NavBar: React.FC = () => {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [jobsDropdown, setJobsDropdown] = useState(false);
 	const [accountDropdown, setAccountDropdown] = useState(false);
+
+	const navigate = useNavigate();
 
 	// Refs for detecting clicks outside dropdowns
 	const jobsRef = useRef<HTMLLIElement>(null);
@@ -26,6 +28,16 @@ const NavBar: React.FC = () => {
 		document.addEventListener("mousedown", handleClickOutside);
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
+
+	const handleLogout = () => {
+		// Clear the token from localStorage
+		localStorage.removeItem("token");
+		localStorage.removeItem("name");
+		localStorage.removeItem("user_id");
+
+		// Redirect to the login page
+		navigate("/login");
+	};
 
 	// Function to close all dropdowns
 	const closeDropdowns = () => {
@@ -149,9 +161,9 @@ const NavBar: React.FC = () => {
 									</li>
 									<li>
 										<Link
-											to="/logout"
+											to="javascript:void(0)"
 											className="block px-4 py-2 hover:bg-gray-100"
-											onClick={closeDropdowns}
+											onClick={handleLogout}
 										>
 											Logout
 										</Link>
