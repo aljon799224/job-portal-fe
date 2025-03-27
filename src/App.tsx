@@ -2,10 +2,10 @@ import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Root from "./pages/Root";
 import HomePage from "./pages/HomePage";
-import Jobs from "./pages/Job";
+import Jobs from "./pages/job/Job";
 import JobsApplied from "./pages/JobsApplied";
 import SavedJobs from "./pages/SavedJobs";
-import PostedJobs from "./pages/MyJobs";
+import PostedJobs from "./pages/job/MyJobs";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import NotAuthorized from "./pages/NotAuthorized";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./authentication/ProtectedRoute";
+import JobCreate from "./pages/job/JobCreate";
 
 function App() {
 	const router = createBrowserRouter([
@@ -47,6 +48,10 @@ function App() {
 				{
 					path: "jobs",
 					element: <Jobs />,
+				},
+				{
+					path: "post-job",
+					element: <JobCreate />,
 				},
 				{
 					path: "jobs-applied",
