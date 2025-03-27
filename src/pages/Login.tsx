@@ -47,8 +47,9 @@ const Login: React.FC = () => {
 					},
 				}
 			);
-			const token = response.data.access_token;
-			localStorage.setItem("token", token);
+			const { access_token, user_id } = response.data;
+			localStorage.setItem("token", access_token);
+			localStorage.setItem("user_id", user_id);
 
 			navigate("/", { state: { message: "Login Successful!" } });
 		} catch (error) {

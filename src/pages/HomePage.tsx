@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAutoHideToast } from "../hooks/useAutoHideToast";
 
 const HomePage = () => {
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
+	const [message, setMessage] = useState<string | null>(null);
 	const [isToastVisible, setIsToastVisible] = useState(false);
 
 	const navigate = useNavigate();
@@ -16,7 +16,7 @@ const HomePage = () => {
 
 	useEffect(() => {
 		if (location.state?.message) {
-			setSuccessMessage(location.state.message);
+			setMessage(location.state.message);
 			setIsToastVisible(true);
 			navigate(location.pathname, { replace: true, state: { message: null } });
 		}
@@ -42,7 +42,7 @@ const HomePage = () => {
 						</svg>
 						<span className="sr-only">Check icon</span>
 					</div>
-					<div className="ms-3 text-sm font-normal">{successMessage}</div>
+					<div className="ms-3 text-sm font-normal">{message}</div>
 					<button
 						type="button"
 						className="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 text-gray-500"
