@@ -1,13 +1,28 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { useAutoHideToast } from "../hooks/useAutoHideToast";
+
+interface Job {
+	id: number;
+	title: string;
+	location: string;
+	description: string;
+	salary: string;
+	user_id: number;
+}
 
 const HomePage = () => {
 	const [message, setMessage] = useState<string | null>(null);
 	const [isToastVisible, setIsToastVisible] = useState(false);
+	const [jobs, setJobs] = useState<Job[]>([]);
 
 	const navigate = useNavigate();
 	const location = useLocation();
+
+	const userId = localStorage.getItem("user_id")
+		? parseInt(localStorage.getItem("user_id")!)
+		: null;
 
 	// Automatically hide toast after 3 seconds
 	useAutoHideToast(isToastVisible, setIsToastVisible);
@@ -21,6 +36,36 @@ const HomePage = () => {
 			navigate(location.pathname, { replace: true, state: { message: null } });
 		}
 	}, [location.state, navigate]);
+
+	// Fetch jobs from API
+	useEffect(() => {
+		const fetchJobs = async () => {
+			try {
+				const accessToken = localStorage.getItem("token");
+				if (!accessToken) {
+					setMessage("Not authenticated");
+					setIsToastVisible(true);
+					throw new Error("Not authenticated");
+				}
+
+				const response = await axios.get(
+					"http://localhost:8000/api/v1/job?page=1&size=50",
+					{ headers: { Authorization: `Bearer ${accessToken}` } }
+				);
+
+				// Ensure jobs is an array and truncate to 6 items
+				const jobList = Array.isArray(response.data.items)
+					? response.data.items.slice(0, 6)
+					: [];
+				setJobs(jobList);
+			} catch (err) {
+				setMessage("Failed to load jobs");
+				setIsToastVisible(true);
+			}
+		};
+
+		fetchJobs();
+	}, []);
 
 	return (
 		<div className="min-h-screen flex flex-col">
@@ -69,6 +114,7 @@ const HomePage = () => {
 					</button>
 				</div>
 			)}
+
 			{/* Hero Section */}
 			<header className="relative text-white text-center py-50 bg-[#ffb380]">
 				<div
@@ -89,19 +135,27 @@ const HomePage = () => {
 			<main className="container mx-auto my-8 px-4 flex-1">
 				<h3 className="text-2xl font-semibold mb-4">Latest Jobs</h3>
 				<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{[1, 2, 3, 4, 5, 6].map((job) => (
-						<div
-							key={job}
-							className="border p-4 rounded shadow hover:shadow-lg transition"
-						>
-							<h4 className="text-xl font-bold">Software Engineer</h4>
-							<p className="text-gray-600">Company Name</p>
-							<p className="mt-2 text-sm">Location: Remote</p>
-							<button className="mt-4 bg-[#ff7409] text-white px-4 py-2 rounded">
-								Apply Now
-							</button>
-						</div>
-					))}
+					{jobs.length > 0 ? (
+						jobs.map((job) => (
+							<div
+								key={job.id}
+								className="border p-4 rounded shadow hover:shadow-lg transition"
+							>
+								<h4 className="text-xl font-bold">{job.title}</h4>
+								<p className="mt-2 text-sm">Location: {job.location}</p>
+								<p className="mt-2 text-sm">Description: {job.description}</p>
+								<p className="mt-2 text-sm">Salary: {job.salary}</p>
+								{/* Hide the apply button if the job belongs to the logged-in user */}
+								{userId !== job.user_id && (
+									<button className="mt-4 bg-[#ff7409] text-white px-4 py-2 rounded">
+										Apply Now
+									</button>
+								)}
+							</div>
+						))
+					) : (
+						<p className="text-gray-600">No jobs available.</p>
+					)}
 				</div>
 			</main>
 		</div>
