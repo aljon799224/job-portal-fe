@@ -14,6 +14,7 @@ import NotAuthorized from "./pages/NotAuthorized";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./authentication/ProtectedRoute";
 import JobCreate from "./pages/job/JobCreate";
+import ApplicationsList from "./pages/job/ApplicationList";
 
 function App() {
 	const router = createBrowserRouter([
@@ -48,6 +49,10 @@ function App() {
 				{
 					path: "jobs",
 					element: <Jobs />,
+				},
+				{
+					path: "jobs/applications/:jobId",
+					element: <ApplicationsList />,
 				},
 				{
 					path: "post-job",

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAutoHideToast } from "../../hooks/useAutoHideToast";
+import { useNavigate } from "react-router-dom";
 
 interface Job {
 	id: number;
@@ -20,6 +21,8 @@ const PostedJobs: React.FC = () => {
 
 	const accessToken = localStorage.getItem("token");
 	const userId = localStorage.getItem("user_id");
+
+	const navigate = useNavigate();
 
 	useAutoHideToast(isToastVisible, setIsToastVisible);
 
@@ -121,7 +124,7 @@ const PostedJobs: React.FC = () => {
 	};
 
 	return (
-		<div className="container mx-auto my-8 px-4 flex-1">
+		<div className="container mx-auto my-8 px-4 flex-1 h-screen">
 			{isToastVisible && (
 				<div
 					id="toast-success"
@@ -199,6 +202,17 @@ const PostedJobs: React.FC = () => {
 								className="bg-[#ff7409] text-white px-4 py-2 rounded hover:bg-[#e06700]"
 							>
 								Edit
+							</button>
+							<button
+								type="button"
+								onClick={() =>
+									navigate(`/jobs/applications/${job.id}`, {
+										state: { jobTitle: job.title },
+									})
+								}
+								className="bg-[#ff7409] text-white px-4 py-2 rounded hover:bg-[#e06700]"
+							>
+								View Applications
 							</button>
 							<button
 								onClick={() => openDeleteModal(job)}
