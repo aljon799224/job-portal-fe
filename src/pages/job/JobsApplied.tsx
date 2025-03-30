@@ -124,9 +124,9 @@ const JobsApplied: React.FC = () => {
 				<p className="text-center text-gray-500 mt-4">No applied jobs found.</p>
 			) : (
 				<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-					{jobs.map((job) => (
+					{jobs.map((job, index) => (
 						<div
-							key={job.id}
+							key={index}
 							className="border p-4 rounded shadow hover:shadow-lg transition"
 						>
 							<h3 className="text-xl font-bold">{job.title}</h3>

@@ -17,6 +17,7 @@ const HomePage = () => {
 	const [isToastVisible, setIsToastVisible] = useState(false);
 	const [jobs, setJobs] = useState<Job[]>([]);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 	const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 	const [resumeFile, setResumeFile] = useState<File | null>(null);
 	const accessToken = localStorage.getItem("token");
@@ -78,13 +79,13 @@ const HomePage = () => {
 		fetchJobs();
 	}, []);
 
-	const openModal = (job: Job) => {
+	const openApplyModal = (job: Job) => {
 		setSelectedJob(job);
-		setIsModalOpen(true);
+		setIsApplyModalOpen(true);
 	};
 
-	const closeModal = () => {
-		setIsModalOpen(false);
+	const closeApplyModal = () => {
+		setIsApplyModalOpen(false);
 		setSelectedJob(null);
 	};
 
@@ -156,7 +157,7 @@ const HomePage = () => {
 				setMessage("Application submitted successfully!");
 				setSuccess(true);
 				setIsToastVisible(true);
-				closeModal();
+				closeApplyModal();
 			}
 		} catch (error) {
 			setMessage("Failed to submit application");
@@ -287,7 +288,7 @@ const HomePage = () => {
 								<p className="mt-2 text-sm">Salary: {job.salary}</p>
 								{userId !== job.user_id && (
 									<button
-										onClick={() => openModal(job)}
+										onClick={() => openApplyModal(job)}
 										className="mt-4 bg-[#ff7409] text-white px-4 py-2 rounded mr-2"
 									>
 										Apply Now
@@ -306,7 +307,7 @@ const HomePage = () => {
 					)}
 				</div>
 			</main>
-			{isModalOpen && (
+			{isApplyModalOpen && (
 				<form action="" onSubmit={handleSubmit}>
 					<div className="fixed inset-0 backdrop-blur-md flex justify-center items-center z-50">
 						<div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
@@ -383,7 +384,7 @@ const HomePage = () => {
 							</div>
 							<div className="flex justify-end space-x-2">
 								<button
-									onClick={closeModal}
+									onClick={closeApplyModal}
 									className="bg-gray-500 text-white px-4 py-2 rounded"
 								>
 									Close
@@ -396,13 +397,13 @@ const HomePage = () => {
 					</div>
 				</form>
 			)}
-			{isModalOpen && selectedJob && (
+			{isModalOpen && (
 				<div className="fixed inset-0 backdrop-blur-md flex justify-center items-center z-50">
 					<div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-						<h3 className="text-xl font-bold">{selectedJob.title}</h3>
-						<p className="mt-2">Location: {selectedJob.location}</p>
-						<p className="mt-2">Description: {selectedJob.description}</p>
-						<p className="mt-2">Salary: {selectedJob.salary}</p>
+						<h3 className="text-xl font-bold">{selectedJob?.title}</h3>
+						<p className="mt-2">Location: {selectedJob?.location}</p>
+						<p className="mt-2">Description: {selectedJob?.description}</p>
+						<p className="mt-2">Salary: {selectedJob?.salary}</p>
 						<button
 							onClick={() => setIsModalOpen(false)}
 							className="mt-4 bg-red-500 text-white px-4 py-2 rounded"

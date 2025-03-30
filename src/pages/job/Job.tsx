@@ -18,6 +18,7 @@ const Jobs: React.FC = () => {
 	const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 	const [success, setSuccess] = useState(true);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
 	const [applicationData, setApplicationData] = useState({
 		email: "",
@@ -38,13 +39,13 @@ const Jobs: React.FC = () => {
 		setResumeFile(null);
 	};
 
-	const openModal = (job: Job) => {
+	const openApplyModal = (job: Job) => {
 		setSelectedJob(job);
-		setIsModalOpen(true);
+		setIsApplyModalOpen(true);
 	};
 
-	const closeModal = () => {
-		setIsModalOpen(false);
+	const closeApplyModal = () => {
+		setIsApplyModalOpen(false);
 		setSelectedJob(null);
 	};
 
@@ -134,7 +135,7 @@ const Jobs: React.FC = () => {
 				setMessage("Application submitted successfully!");
 				setSuccess(true);
 				setIsToastVisible(true);
-				closeModal();
+				closeApplyModal();
 			}
 		} catch (error) {
 			setMessage("Failed to submit application");
@@ -240,7 +241,7 @@ const Jobs: React.FC = () => {
 						{/* Hide the apply button if the job belongs to the logged-in user */}
 						{userId !== job.user_id && (
 							<button
-								onClick={() => openModal(job)}
+								onClick={() => openApplyModal(job)}
 								className="mt-4 bg-[#ff7409] text-white px-4 py-2 rounded"
 							>
 								Apply Now
@@ -249,7 +250,7 @@ const Jobs: React.FC = () => {
 					</div>
 				))}
 			</div>
-			{isModalOpen && (
+			{isApplyModalOpen && (
 				<form action="" onSubmit={handleSubmit}>
 					<div className="fixed inset-0 backdrop-blur-md flex justify-center items-center z-50">
 						<div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
@@ -326,7 +327,7 @@ const Jobs: React.FC = () => {
 							</div>
 							<div className="flex justify-end space-x-2">
 								<button
-									onClick={closeModal}
+									onClick={closeApplyModal}
 									className="bg-gray-500 text-white px-4 py-2 rounded"
 								>
 									Close
