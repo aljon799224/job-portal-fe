@@ -1,105 +1,160 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const Profile: React.FC = () => {
-	const [name, setName] = useState("John Doe");
-	const [email, setEmail] = useState("johndoe@example.com");
-	const [bio, setBio] = useState("Software Developer at Peso Calumpit.");
-	const [profilePic, setProfilePic] = useState(
-		"/src/assets/default-avatar.png"
-	);
+	const [userData, setUserData] = useState({
+		first_name: "",
+		middle_name: "",
+		last_name: "",
+		email: "",
+		username: "",
+	});
 	const [editing, setEditing] = useState(false);
+	const [message, setMessage] = useState("");
+	const accessToken = localStorage.getItem("token");
+	const userId = localStorage.getItem("user_id")
+		? parseInt(localStorage.getItem("user_id")!)
+		: null;
 
-	const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		if (event.target.files && event.target.files[0]) {
-			const file = event.target.files[0];
-			const imageUrl = URL.createObjectURL(file);
-			setProfilePic(imageUrl);
-		}
+	useEffect(() => {
+		const fetchProfile = async () => {
+			try {
+				const response = await axios.get(
+					`http://localhost:8000/api/v1/user/${userId}`,
+					{ headers: { Authorization: `Bearer ${accessToken}` } }
+				);
+				setUserData(response.data);
+			} catch (error) {
+				setMessage("Failed to fetch profile.");
+			}
+		};
+		fetchProfile();
+	}, []);
+
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const { name, value } = e.target;
+		setUserData((prev) => ({ ...prev, [name]: value }));
 	};
 
-	const handleSave = () => {
-		// Simulate saving data (In real case, send to API)
-		setEditing(false);
-		alert("Profile updated successfully!");
+	const handleSave = async () => {
+		try {
+			console.log(userData);
+			const response = await axios.put(
+				`http://localhost:8000/api/v1/user/${userId}`,
+				userData,
+				{
+					headers: { Authorization: `Bearer ${accessToken}` },
+				}
+			);
+			console.log(response);
+			setMessage("Profile updated successfully!");
+			setEditing(false);
+		} catch (error) {
+			setMessage("Failed to update profile.");
+		}
 	};
 
 	return (
 		<div className="container mx-auto my-8 px-4 flex-1">
-			<h2 className="text-2xl font-semibold mb-4 text-center">My Profile</h2>
+			{message && <p className="text-center text-green-600">{message}</p>}
 
-			{/* Profile Picture */}
-			<div className="flex flex-col items-center mb-6">
-				<img
-					src={profilePic}
-					alt="Profile"
-					className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
-				/>
-				{editing && (
+			<h2 className="text-3xl font-bold text-center text-[#ff7409]">Profile</h2>
+
+			<form className="max-w-lg mx-auto mt-6 bg-white p-6 shadow-lg rounded">
+				{/* First Name */}
+				<div className="mb-4">
+					<label className="block font-semibold">First Name</label>
 					<input
-						type="file"
-						accept="image/*"
-						onChange={handleImageChange}
-						className="mt-2 text-sm"
+						type="text"
+						name="first_name"
+						value={userData.first_name}
+						onChange={handleChange}
+						className="w-full p-2 border rounded"
+						disabled={!editing}
 					/>
-				)}
-			</div>
+				</div>
 
-			{/* Profile Form */}
-			<div className="space-y-4">
-				{/* Name */}
-				<div>
-					<label className="block font-medium">Full Name</label>
-					{editing ? (
-						<input
-							type="text"
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-							className="w-full p-2 border rounded-md"
-						/>
-					) : (
-						<p className="p-2 bg-gray-100 rounded-md">{name}</p>
-					)}
+				{/* Middle Name */}
+				<div className="mb-4">
+					<label className="block font-semibold">Middle Name</label>
+					<input
+						type="text"
+						name="middle_name"
+						value={userData.middle_name}
+						onChange={handleChange}
+						className="w-full p-2 border rounded"
+						disabled={!editing}
+					/>
+				</div>
+
+				{/* Last Name */}
+				<div className="mb-4">
+					<label className="block font-semibold">Last Name</label>
+					<input
+						type="text"
+						name="last_name"
+						value={userData.last_name}
+						onChange={handleChange}
+						className="w-full p-2 border rounded"
+						disabled={!editing}
+					/>
 				</div>
 
 				{/* Email */}
-				<div>
-					<label className="block font-medium">Email</label>
-					<p className="p-2 bg-gray-100 rounded-md">{email}</p>
+				<div className="mb-4">
+					<label className="block font-semibold">Email</label>
+					<input
+						type="email"
+						name="email"
+						value={userData.email}
+						className="w-full p-2 border rounded bg-gray-100"
+						disabled
+					/>
 				</div>
 
-				{/* Bio */}
-				<div>
-					<label className="block font-medium">Bio</label>
+				{/* Username */}
+				<div className="mb-4">
+					<label className="block font-semibold">Username</label>
+					<input
+						type="text"
+						name="username"
+						value={userData.username}
+						onChange={handleChange}
+						className="w-full p-2 border rounded"
+						disabled={!editing}
+					/>
+				</div>
+
+				{/* Action Buttons */}
+				<div className="mt-6 flex justify-center space-x-4">
 					{editing ? (
-						<textarea
-							value={bio}
-							onChange={(e) => setBio(e.target.value)}
-							className="w-full p-2 border rounded-md"
-						/>
+						<>
+							<button
+								type="button"
+								onClick={handleSave}
+								className="bg-[#ff7409] text-white px-4 py-2 rounded w-full hover:bg-orange-600"
+							>
+								Save Changes
+							</button>
+							<button
+								type="button"
+								onClick={() => setEditing(false)}
+								className="bg-gray-400 text-white px-4 py-2 rounded w-full hover:bg-gray-500"
+							>
+								Cancel
+							</button>
+						</>
 					) : (
-						<p className="p-2 bg-gray-100 rounded-md">{bio}</p>
+						<button
+							type="button"
+							onClick={() => setEditing(true)}
+							className="bg-gray-700 text-white px-4 py-2 rounded w-full hover:bg-gray-900"
+						>
+							Edit Profile
+						</button>
 					)}
 				</div>
-			</div>
-
-			{/* Action Buttons */}
-			<div className="mt-6 flex justify-between">
-				{editing ? (
-					<button
-						onClick={handleSave}
-						className="px-4 py-2 bg-[#ff7409] text-white rounded-md hover:bg-orange-600 transition"
-					>
-						Save Changes
-					</button>
-				) : (
-					<button
-						onClick={() => setEditing(true)}
-						className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-900 transition"
-					>
-						Edit Profile
-					</button>
-				)}
-			</div>
+			</form>
 		</div>
 	);
 };

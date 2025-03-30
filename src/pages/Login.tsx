@@ -189,12 +189,12 @@ const Login: React.FC = () => {
 					</div>
 
 					<div className="flex justify-between text-sm">
-						<Link
+						{/* <Link
 							to="/reset-password"
 							className="text-[#ff7409] hover:underline"
 						>
 							Forgot Password?
-						</Link>
+						</Link> */}
 						<Link to="/register" className="text-[#ff7409] hover:underline">
 							Create an account
 						</Link>

@@ -1,27 +1,28 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+interface SavedJobs {
+	id: number;
+	user_id: number;
+	job_id: number;
+	job_title: string;
+	job_location: string;
+	job_description: string;
+	job_salary: string;
+}
+
 interface Job {
 	id: number;
-	title: string;
-	location: string;
-	description: string;
-	salary: string;
+	job_id: number;
+	job_location: string;
+	job_description: string;
+	job_salary: string;
+	job_title: string;
 	user_id: number;
 }
 
-const Jobs: React.FC = () => {
-	const [jobs, setJobs] = useState<Job[]>([]);
-	const [isToastVisible, setIsToastVisible] = useState(false);
-	const [message, setMessage] = useState("");
-	const [resumeFile, setResumeFile] = useState<File | null>(null);
-	const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-	const [success, setSuccess] = useState(true);
-	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-	const [appliedJobs, setAppliedJobs] = useState(new Set());
-	const [isSaved, setIsSaved] = useState(false);
-	const [savedJobs, setSavedJobs] = useState(new Set<number>());
+const SavedJobs: React.FC = () => {
+	const [savedJobs, setSavedJobs] = useState<SavedJobs[]>([]);
 
 	const [applicationData, setApplicationData] = useState({
 		email: "",
@@ -35,12 +36,18 @@ const Jobs: React.FC = () => {
 	const userId = localStorage.getItem("user_id")
 		? parseInt(localStorage.getItem("user_id")!)
 		: null;
+	const [isToastVisible, setIsToastVisible] = useState(false);
+	const [message, setMessage] = useState("");
+	const API_URL = `http://localhost:8000/api/v1/saved-jobs/${userId}?page=1&size=50`;
+
+	const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+	const [selectedJob, setSelectedJob] = useState<any>(null);
+	const [resumeFile, setResumeFile] = useState<File | null>(null);
+	const [appliedJobs, setAppliedJobs] = useState(new Set());
+	const [success, setSuccess] = useState(true);
+	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const closeToast = () => setIsToastVisible(false);
-
-	const removeFile = () => {
-		setResumeFile(null);
-	};
 
 	const openApplyModal = (job: Job) => {
 		setSelectedJob(job);
@@ -52,27 +59,9 @@ const Jobs: React.FC = () => {
 		setSelectedJob(null);
 	};
 
-	useEffect(() => {
-		const fetchJobs = async () => {
-			try {
-				if (!accessToken) {
-					setMessage("Not authenticated");
-					setIsToastVisible(true);
-					throw new Error("Not authenticated");
-				}
-
-				const response = await axios.get(
-					"http://localhost:8000/api/v1/job?page=1&size=50",
-					{ headers: { Authorization: `Bearer ${accessToken}` } }
-				);
-				console.log("API Response:", response.data);
-				setJobs(response.data.items);
-			} catch (err) {
-				setMessage("Failed to load jobs");
-			}
-		};
-		fetchJobs();
-	}, []);
+	const removeFile = () => {
+		setResumeFile(null);
+	};
 
 	useEffect(() => {
 		const checkApplications = async () => {
@@ -84,14 +73,15 @@ const Jobs: React.FC = () => {
 			}
 			if (!userId) return;
 			const appliedSet = new Set();
-			for (const job of jobs) {
+			for (const job of savedJobs) {
 				try {
 					const response = await axios.get(
-						`http://localhost:8000/api/v1/applications/user-job?user_id=${userId}&job_id=${job.id}`,
+						`http://localhost:8000/api/v1/applications/user-job?user_id=${userId}&job_id=${job.job_id}`,
+
 						{ headers: { Authorization: `Bearer ${accessToken}` } }
 					);
 					if (response.status === 200) {
-						appliedSet.add(job.id); // Mark job as applied
+						appliedSet.add(job.job_id); // Mark job as applied
 					}
 				} catch (error: any) {
 					if (error.response?.status !== 404) {
@@ -102,10 +92,31 @@ const Jobs: React.FC = () => {
 			setAppliedJobs(appliedSet);
 		};
 
-		if (jobs.length) {
+		if (savedJobs.length) {
 			checkApplications();
 		}
-	}, [jobs, userId]);
+	}, [savedJobs, userId]);
+
+	useEffect(() => {
+		const fetchSavedJobs = async () => {
+			try {
+				if (!accessToken) {
+					setMessage("Not authenticated");
+					setIsToastVisible(true);
+					throw new Error("Not authenticated");
+				}
+
+				const response = await axios.get(API_URL, {
+					headers: { Authorization: `Bearer ${accessToken}` },
+				});
+				setSavedJobs(response.data.items || []);
+			} catch (error) {
+				console.error("Error fetching saved jobs:", error);
+			}
+		};
+
+		fetchSavedJobs();
+	}, []);
 
 	const handleChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -157,7 +168,7 @@ const Jobs: React.FC = () => {
 			}
 
 			const response = await axios.post(
-				`http://localhost:8000/api/v1/application/${selectedJob.id}`,
+				`http://localhost:8000/api/v1/application/${selectedJob.job_id}`,
 				formData,
 				{
 					headers: {
@@ -200,65 +211,8 @@ const Jobs: React.FC = () => {
 		}
 	};
 
-	const saveJob = async (jobId: number) => {
-		try {
-			if (!accessToken || !userId) {
-				setMessage("Not authenticated");
-				setIsToastVisible(true);
-				throw new Error("Not authenticated");
-			}
+	console.log(selectedJob);
 
-			const response = await axios.post(
-				"http://localhost:8000/api/v1/save-job",
-				{ user_id: userId, job_id: jobId },
-				{ headers: { Authorization: `Bearer ${accessToken}` } }
-			);
-
-			if (response.status === 200) {
-				setMessage("Job saved successfully!");
-				setSuccess(true);
-				setIsToastVisible(true);
-
-				// 🔹 Update the saved jobs state immediately
-				setSavedJobs((prevSavedJobs) => new Set(prevSavedJobs).add(jobId));
-			}
-		} catch (error) {
-			setMessage("Failed to save job");
-			setSuccess(false);
-			setIsToastVisible(true);
-		}
-	};
-
-	useEffect(() => {
-		// Function to check if each job is saved
-		const checkSavedJobs = async () => {
-			const savedJobIds = new Set<number>();
-
-			await Promise.all(
-				jobs.map(async (job) => {
-					try {
-						await axios.get(
-							`http://localhost:8000/api/v1/save-job/user-job?user_id=${userId}&job_id=${job.id}`
-						);
-						// If request succeeds, add job ID to savedJobs
-						savedJobIds.add(job.id);
-					} catch (error: any) {
-						if (error.response?.status === 404) {
-							// Job is NOT saved, do nothing
-						} else {
-							console.error("Error checking saved job:", error);
-						}
-					}
-				})
-			);
-
-			setSavedJobs(savedJobIds);
-		};
-
-		if (jobs.length > 0) {
-			checkSavedJobs();
-		}
-	}, [jobs, userId]);
 	return (
 		<div className="container mx-auto my-8 px-4 flex-1">
 			{isToastVisible && (
@@ -306,69 +260,50 @@ const Jobs: React.FC = () => {
 				</div>
 			)}
 			<h2 className="text-3xl font-bold text-center text-[#ff7409]">
-				Job Listings
+				Saved Jobs
 			</h2>
 			<p className="text-center text-gray-600 mt-2">
-				Explore exciting career opportunities.
+				Your favorite job listings, saved for later.
 			</p>
 			<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-				{jobs.map((job) => (
-					<div
-						key={job.id}
-						className="border p-4 rounded shadow hover:shadow-lg transition"
-					>
-						<h3 className="text-xl font-bold">{job.title}</h3>
-						<p className="mt-2 text-sm">Location: {job.location}</p>
-						<p className="mt-2 text-sm">
-							Description:{" "}
-							{job.description.length > 15
-								? `${job.description.slice(0, 15)}...`
-								: job.description}
-						</p>
-
-						<p className="mt-2 text-sm">Salary: {job.salary}</p>
-						<button
-							onClick={() => fetchJobDetails(job.id)}
-							className="mt-4 bg-[#ff7409] text-white px-4 py-2 rounded mr-2"
+				{savedJobs.length > 0 ? (
+					savedJobs.map((job, index) => (
+						<div
+							key={index}
+							className="border p-4 rounded shadow hover:shadow-lg transition"
 						>
-							View Details
-						</button>
+							<h3 className="text-xl font-bold">{job.job_title}</h3>
 
-						{/* Hide the apply button if the job belongs to the logged-in user */}
-						{userId !== job.user_id && (
-							<button
-								onClick={() => openApplyModal(job)}
-								className={`mt-4 px-4 py-2 rounded mr-2 ${
-									appliedJobs.has(job.id)
-										? "bg-gray-400 cursor-not-allowed"
-										: "bg-blue-500 text-white"
-								}`}
-								disabled={appliedJobs.has(job.id)}
-							>
-								Apply Now
-							</button>
-						)}
-						<button
-							onClick={() => saveJob(job.id)}
-							className={`mt-4 px-3 py-2 rounded ${
-								savedJobs.has(job.id)
-									? "bg-gray-400 cursor-not-allowed"
-									: "bg-yellow-500 text-white hover:bg-yellow-600"
-							} transition`}
-							disabled={savedJobs.has(job.id)}
-						>
-							{savedJobs.has(job.id) ? "✅ Saved" : "⭐ Save Job"}
-						</button>
-					</div>
-				))}
+							<div className="flex justify-between items-center mt-4">
+								<button
+									onClick={() => fetchJobDetails(job.job_id)}
+									className="mt-4 bg-[#ff7409] text-white px-4 py-2 rounded mr-2"
+								>
+									View Details
+								</button>
+								<button
+									onClick={() => openApplyModal(job)}
+									className={`mt-4 px-4 py-2 rounded mr-2 ${
+										appliedJobs.has(job.job_id)
+											? "bg-gray-400 cursor-not-allowed"
+											: "bg-blue-500 text-white"
+									}`}
+									disabled={appliedJobs.has(job.job_id)}
+								>
+									{appliedJobs.has(job.job_id) ? "Applied" : "Apply Now"}
+								</button>
+							</div>
+						</div>
+					))
+				) : (
+					<p className="text-center text-gray-600 mt-6">No saved jobs found.</p>
+				)}
 			</div>
 			{isApplyModalOpen && (
 				<form action="" onSubmit={handleSubmit}>
 					<div className="fixed inset-0 backdrop-blur-md flex justify-center items-center z-50">
 						<div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-							<h2 className="text-xl font-bold mb-4">
-								Apply for {selectedJob?.title}
-							</h2>
+							<h2 className="text-xl font-bold mb-4">Apply</h2>
 							<input
 								name="email"
 								onChange={handleChange}
@@ -452,7 +387,6 @@ const Jobs: React.FC = () => {
 					</div>
 				</form>
 			)}
-			{/* Modal */}
 			{isModalOpen && selectedJob && (
 				<div className="fixed inset-0 backdrop-blur-md flex justify-center items-center z-50">
 					<div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
@@ -473,4 +407,4 @@ const Jobs: React.FC = () => {
 	);
 };
 
-export default Jobs;
+export default SavedJobs;

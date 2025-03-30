@@ -4,7 +4,7 @@ import Root from "./pages/Root";
 import HomePage from "./pages/HomePage";
 import Jobs from "./pages/job/Job";
 import JobsApplied from "./pages/job/JobsApplied";
-import SavedJobs from "./pages/SavedJobs";
+import SavedJobs from "./pages/job/SavedJobs";
 import PostedJobs from "./pages/job/MyJobs";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
