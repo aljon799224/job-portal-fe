@@ -22,6 +22,7 @@ const HomePage = () => {
 	const [resumeFile, setResumeFile] = useState<File | null>(null);
 	const accessToken = localStorage.getItem("token");
 	const [success, setSuccess] = useState(true);
+	const [appliedJobs, setAppliedJobs] = useState(new Set());
 
 	const [applicationData, setApplicationData] = useState({
 		email: "",
@@ -77,7 +78,40 @@ const HomePage = () => {
 			}
 		};
 		fetchJobs();
-	}, []);
+	}, [success]);
+
+	useEffect(() => {
+		const checkApplications = async () => {
+			if (!accessToken) {
+				setMessage("Not authenticated");
+				setSuccess(false);
+				setIsToastVisible(true);
+				throw new Error("Not authenticated");
+			}
+			if (!userId) return;
+			const appliedSet = new Set();
+			for (const job of jobs) {
+				try {
+					const response = await axios.get(
+						`http://localhost:8000/api/v1/applications/user-job?user_id=${userId}&job_id=${job.id}`,
+						{ headers: { Authorization: `Bearer ${accessToken}` } }
+					);
+					if (response.status === 200) {
+						appliedSet.add(job.id); // Mark job as applied
+					}
+				} catch (error: any) {
+					if (error.response?.status !== 404) {
+						console.error("Error checking application status", error);
+					}
+				}
+			}
+			setAppliedJobs(appliedSet);
+		};
+
+		if (jobs.length) {
+			checkApplications();
+		}
+	}, [jobs, userId]);
 
 	const openApplyModal = (job: Job) => {
 		setSelectedJob(job);
@@ -158,6 +192,7 @@ const HomePage = () => {
 				setSuccess(true);
 				setIsToastVisible(true);
 				closeApplyModal();
+				window.location.reload();
 			}
 		} catch (error) {
 			setMessage("Failed to submit application");
@@ -289,9 +324,14 @@ const HomePage = () => {
 								{userId !== job.user_id && (
 									<button
 										onClick={() => openApplyModal(job)}
-										className="mt-4 bg-[#ff7409] text-white px-4 py-2 rounded mr-2"
+										className={`mt-4 px-4 py-2 rounded mr-2 ${
+											appliedJobs.has(job.id)
+												? "bg-gray-400 cursor-not-allowed"
+												: "bg-blue-500 text-white"
+										}`}
+										disabled={appliedJobs.has(job.id)}
 									>
-										Apply Now
+										{appliedJobs.has(job.id) ? "Applied" : "Apply Now"}
 									</button>
 								)}
 								<button
