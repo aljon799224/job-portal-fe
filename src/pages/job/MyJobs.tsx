@@ -188,10 +188,16 @@ const PostedJobs: React.FC = () => {
 						<p className="text-gray-600 font-semibold">
 							Location: <span className="font-normal">{job.location}</span>
 						</p>
+
 						<p className="text-gray-600 font-semibold">
 							Description:{" "}
-							<span className="font-normal">{job.description}</span>
+							<span className="font-normal">
+								{job.description.length > 15
+									? `${job.description.slice(0, 15)}...`
+									: job.description}
+							</span>
 						</p>
+
 						<p className="text-gray-600 font-semibold">
 							Salary: <span className="font-normal">{job.salary}</span>
 						</p>

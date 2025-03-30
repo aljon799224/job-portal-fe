@@ -143,6 +143,25 @@ const Jobs: React.FC = () => {
 		}
 	};
 
+	const fetchJobDetails = async (jobId: number) => {
+		try {
+			if (!accessToken || !userId) {
+				setMessage("Not authenticated");
+				setIsToastVisible(true);
+				throw new Error("Not authenticated");
+			}
+			const response = await axios.get(
+				`http://localhost:8000/api/v1/job/${jobId}`,
+				{ headers: { Authorization: `Bearer ${accessToken}` } }
+			);
+			setSelectedJob(response.data);
+			setIsModalOpen(true);
+		} catch (error) {
+			setMessage("Failed to fetch job details.");
+			setIsToastVisible(true);
+		}
+	};
+
 	return (
 		<div className="container mx-auto my-8 px-4 flex-1">
 			{isToastVisible && (
@@ -203,8 +222,20 @@ const Jobs: React.FC = () => {
 					>
 						<h3 className="text-xl font-bold">{job.title}</h3>
 						<p className="mt-2 text-sm">Location: {job.location}</p>
-						<p className="mt-2 text-sm">Description: {job.description}</p>
+						<p className="mt-2 text-sm">
+							Description:{" "}
+							{job.description.length > 15
+								? `${job.description.slice(0, 15)}...`
+								: job.description}
+						</p>
+
 						<p className="mt-2 text-sm">Salary: {job.salary}</p>
+						<button
+							onClick={() => fetchJobDetails(job.id)}
+							className="mt-4 bg-[#ff7409] text-white px-4 py-2 rounded mr-2"
+						>
+							View Details
+						</button>
 
 						{/* Hide the apply button if the job belongs to the logged-in user */}
 						{userId !== job.user_id && (
@@ -307,6 +338,23 @@ const Jobs: React.FC = () => {
 						</div>
 					</div>
 				</form>
+			)}
+			{/* Modal */}
+			{isModalOpen && selectedJob && (
+				<div className="fixed inset-0 backdrop-blur-md flex justify-center items-center z-50">
+					<div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+						<h3 className="text-xl font-bold">{selectedJob.title}</h3>
+						<p className="mt-2">Location: {selectedJob.location}</p>
+						<p className="mt-2">Description: {selectedJob.description}</p>
+						<p className="mt-2">Salary: {selectedJob.salary}</p>
+						<button
+							onClick={() => setIsModalOpen(false)}
+							className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+						>
+							Close
+						</button>
+					</div>
+				</div>
 			)}
 		</div>
 	);
