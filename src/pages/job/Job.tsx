@@ -345,7 +345,7 @@ const Jobs: React.FC = () => {
 								}`}
 								disabled={appliedJobs.has(job.id)}
 							>
-								Apply Now
+								{appliedJobs.has(job.id) ? "Applied" : "Apply Now"}
 							</button>
 						)}
 						<button
