@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useAutoHideToast } from "../../hooks/useAutoHideToast";
+import api from "../../axios";
 
 interface Job {
 	id: number;
@@ -33,8 +33,8 @@ const JobsApplied: React.FC = () => {
 			}
 
 			try {
-				const response = await axios.get(
-					`http://localhost:8000/api/v1/jobs/applied/${userId}?page=1&size=50`,
+				const response = await api.get(
+					`/jobs/applied/${userId}?page=1&size=50`,
 					{ headers: { Authorization: `Bearer ${accessToken}` } }
 				);
 				setJobs(response.data.items);
@@ -55,10 +55,9 @@ const JobsApplied: React.FC = () => {
 				setIsToastVisible(true);
 				throw new Error("Not authenticated");
 			}
-			const response = await axios.get(
-				`http://localhost:8000/api/v1/job/${jobId}`,
-				{ headers: { Authorization: `Bearer ${accessToken}` } }
-			);
+			const response = await api.get(`/job/${jobId}`, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			});
 			setSelectedJob(response.data);
 			setIsModalOpen(true);
 		} catch (error) {

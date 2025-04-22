@@ -15,6 +15,8 @@ import Profile from "./pages/Profile";
 import ProtectedRoute from "./authentication/ProtectedRoute";
 import JobCreate from "./pages/job/JobCreate";
 import ApplicationsList from "./pages/job/ApplicationList";
+import ResetPasswordWithOTP from "./pages/ResetPasswordWithOTP";
+import SendOtp from "./pages/SendOtp";
 
 function App() {
 	const router = createBrowserRouter([
@@ -37,6 +39,14 @@ function App() {
 		{
 			path: "/reset-password",
 			element: <ResetPassword />,
+		},
+		{
+			path: "/reset-password-main",
+			element: <ResetPasswordWithOTP />,
+		},
+		{
+			path: "/send-otp",
+			element: <SendOtp />,
 		},
 		{
 			path: "/",

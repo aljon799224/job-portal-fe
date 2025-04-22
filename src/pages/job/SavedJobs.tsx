@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import api from "../../axios";
 
 interface SavedJobs {
 	id: number;
@@ -21,6 +22,8 @@ interface Job {
 	user_id: number;
 }
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const SavedJobs: React.FC = () => {
 	const [savedJobs, setSavedJobs] = useState<SavedJobs[]>([]);
 
@@ -38,7 +41,8 @@ const SavedJobs: React.FC = () => {
 		: null;
 	const [isToastVisible, setIsToastVisible] = useState(false);
 	const [message, setMessage] = useState("");
-	const API_URL = `http://localhost:8000/api/v1/saved-jobs/${userId}?page=1&size=50`;
+
+	const API_URL = `${BASE_URL}/saved-jobs/${userId}?page=1&size=50`;
 
 	const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 	const [selectedJob, setSelectedJob] = useState<any>(null);
@@ -46,6 +50,8 @@ const SavedJobs: React.FC = () => {
 	const [appliedJobs, setAppliedJobs] = useState(new Set());
 	const [success, setSuccess] = useState(true);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	console.log(success);
 
 	const closeToast = () => setIsToastVisible(false);
 
@@ -75,8 +81,8 @@ const SavedJobs: React.FC = () => {
 			const appliedSet = new Set();
 			for (const job of savedJobs) {
 				try {
-					const response = await axios.get(
-						`http://localhost:8000/api/v1/applications/user-job?user_id=${userId}&job_id=${job.job_id}`,
+					const response = await api.get(
+						`/applications/user-job?user_id=${userId}&job_id=${job.job_id}`,
 
 						{ headers: { Authorization: `Bearer ${accessToken}` } }
 					);

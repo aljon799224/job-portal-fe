@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAutoHideToast } from "../../hooks/useAutoHideToast";
+import api from "../../axios";
 
 interface Application {
 	email: number;
 	resume: string;
 	mobile_number: string;
+	expected_salary: string;
 }
 
 const ApplicationsList: React.FC = () => {
@@ -35,8 +36,8 @@ const ApplicationsList: React.FC = () => {
 				throw new Error("Not authenticated");
 			}
 			try {
-				const response = await axios.get(
-					`http://localhost:8000/api/v1/application/job/${jobId}?page=1&size=50`,
+				const response = await api.get(
+					`/application/job/${jobId}?page=1&size=50`,
 					{ headers: { Authorization: `Bearer ${accessToken}` } }
 				);
 				setApplications(response.data.items || []);
@@ -68,8 +69,8 @@ const ApplicationsList: React.FC = () => {
 
 		try {
 			const encodedFilename = encodeURIComponent(filename!);
-			const response = await axios.get(
-				`http://localhost:8000/api/v1/application/download/${encodedFilename}`,
+			const response = await api.get(
+				`/application/download/${encodedFilename}`,
 				{
 					headers: { Authorization: `Bearer ${accessToken}` },
 					responseType: "blob",
@@ -85,6 +86,48 @@ const ApplicationsList: React.FC = () => {
 			document.body.removeChild(link);
 		} catch (error) {
 			setMessage("Failed to download resume");
+			setIsToastVisible(true);
+		}
+	};
+
+	const handlePreviewResume = async (filePath: string) => {
+		if (!filePath) {
+			setMessage("Resume not available");
+			setIsToastVisible(true);
+			return;
+		}
+
+		if (!accessToken) {
+			setMessage("Not authenticated");
+			setIsToastVisible(true);
+			return;
+		}
+
+		// Extract only the filename from the path
+		const filename = filePath.split("/").pop(); // ✅ This ensures only the filename is sent
+
+		try {
+			const encodedFilename = encodeURIComponent(filename!);
+			const response = await api.get(
+				`/application/download/${encodedFilename}`,
+				{
+					headers: { Authorization: `Bearer ${accessToken}` },
+					responseType: "blob",
+				}
+			);
+
+			// Create a new URL for the resume preview
+			const url = window.URL.createObjectURL(new Blob([response.data]));
+			const newTab = window.open();
+			if (newTab) {
+				newTab.document.title = "Resume Preview";
+				newTab.document.body.innerHTML = `
+			  <h2>Resume Preview</h2>
+			  <iframe src="${url}" width="100%" height="100%" style="border: none;"></iframe>
+			`;
+			}
+		} catch (error) {
+			setMessage("Failed to preview resume");
 			setIsToastVisible(true);
 		}
 	};
@@ -151,6 +194,7 @@ const ApplicationsList: React.FC = () => {
 						<li key={index} className="p-4 bg-white shadow rounded">
 							<p>Email: {app.email}</p>
 							<p>Mobile Number: {app.mobile_number}</p>
+							<p>Expected Salary: {app.expected_salary}</p>
 							<p>
 								Resume:{" "}
 								{app.resume ? (

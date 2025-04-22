@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useAutoHideToast } from "../../hooks/useAutoHideToast";
 import { useNavigate } from "react-router-dom";
+import api from "../../axios";
 
 interface Job {
 	id: number;
@@ -39,10 +39,9 @@ const PostedJobs: React.FC = () => {
 					throw new Error("Not authenticated");
 				}
 
-				const response = await axios.get(
-					`http://localhost:8000/api/v1/jobs/user/${userId}?page=1&size=50`,
-					{ headers: { Authorization: `Bearer ${accessToken}` } }
-				);
+				const response = await api.get(`/jobs/user/${userId}?page=1&size=50`, {
+					headers: { Authorization: `Bearer ${accessToken}` },
+				});
 
 				setJobs(response.data.items);
 			} catch (error) {
@@ -78,9 +77,9 @@ const PostedJobs: React.FC = () => {
 
 		if (!selectedJob) return;
 		try {
-			await axios.put(
+			await api.put(
 				// Change from PATCH to PUT
-				`http://0.0.0.0:8000/api/v1/job/${selectedJob.id}`,
+				`/job/${selectedJob.id}`,
 				{
 					title: selectedJob.title,
 					location: selectedJob.location,
@@ -111,7 +110,7 @@ const PostedJobs: React.FC = () => {
 
 		if (!selectedJob) return;
 		try {
-			await axios.delete(`http://localhost:8000/api/v1/job/${selectedJob.id}`, {
+			await api.delete(`/job/${selectedJob.id}`, {
 				headers: { Authorization: `Bearer ${accessToken}` },
 			});
 			setMessage("Job deleted successfully!");
