@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../axios";
 
 const Profile: React.FC = () => {
 	const [userData, setUserData] = useState({
@@ -19,10 +19,9 @@ const Profile: React.FC = () => {
 	useEffect(() => {
 		const fetchProfile = async () => {
 			try {
-				const response = await axios.get(
-					`http://localhost:8000/api/v1/user/${userId}`,
-					{ headers: { Authorization: `Bearer ${accessToken}` } }
-				);
+				const response = await api.get(`/user/${userId}`, {
+					headers: { Authorization: `Bearer ${accessToken}` },
+				});
 				setUserData(response.data);
 			} catch (error) {
 				setMessage("Failed to fetch profile.");
@@ -37,15 +36,16 @@ const Profile: React.FC = () => {
 	};
 
 	const handleSave = async () => {
+		if (userData.username.trim() === "") {
+			setMessage("Username cannot be empty.");
+			return;
+		}
+
 		try {
 			console.log(userData);
-			const response = await axios.put(
-				`http://localhost:8000/api/v1/user/${userId}`,
-				userData,
-				{
-					headers: { Authorization: `Bearer ${accessToken}` },
-				}
-			);
+			const response = await api.put(`/user/${userId}`, userData, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			});
 			console.log(response);
 			setMessage("Profile updated successfully!");
 			setEditing(false);
@@ -134,7 +134,7 @@ const Profile: React.FC = () => {
 								onClick={handleSave}
 								className="bg-[#ff7409] text-white px-4 py-2 rounded w-full hover:bg-orange-600"
 							>
-								Save Changes
+								Save Changess
 							</button>
 							<button
 								type="button"

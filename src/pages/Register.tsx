@@ -1,6 +1,6 @@
-import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../axios";
 
 const Register: React.FC = () => {
 	const navigate = useNavigate();
@@ -43,10 +43,7 @@ const Register: React.FC = () => {
 				password: formData.password,
 			};
 
-			const response = await axios.post(
-				"http://localhost:8000/api/v1/user",
-				backendPayload
-			);
+			const response = await api.post("/user", backendPayload);
 
 			console.log(response);
 			navigate("/login", { state: { message: "Registration Successful!" } });

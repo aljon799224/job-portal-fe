@@ -8,6 +8,8 @@ const NavBar: React.FC = () => {
 
 	const navigate = useNavigate();
 
+	const username = localStorage.getItem("username");
+
 	// Refs for detecting clicks outside dropdowns
 	const jobsRef = useRef<HTMLLIElement>(null);
 	const accountRef = useRef<HTMLLIElement>(null);
@@ -33,6 +35,7 @@ const NavBar: React.FC = () => {
 		// Clear the token from localStorage
 		localStorage.removeItem("token");
 		localStorage.removeItem("user_id");
+		localStorage.removeItem("username");
 
 		// Redirect to the login page
 		navigate("/login");
@@ -86,55 +89,67 @@ const NavBar: React.FC = () => {
 							</button>
 							{jobsDropdown && (
 								<ul className="absolute left-0 mt-2 w-48 bg-white text-black border rounded shadow-lg z-50">
-									<li>
-										<Link
-											to="/jobs"
-											className="block px-4 py-2 hover:bg-gray-100"
-											onClick={closeDropdowns}
-										>
-											Browse Jobs
-										</Link>
-									</li>
-									<li>
-										<Link
-											to="/jobs-applied"
-											className="block px-4 py-2 hover:bg-gray-100"
-											onClick={closeDropdowns}
-										>
-											Jobs Applied
-										</Link>
-									</li>
-									<li>
-										<Link
-											to="/save-jobs"
-											className="block px-4 py-2 hover:bg-gray-100"
-											onClick={closeDropdowns}
-										>
-											Saved Jobs
-										</Link>
-									</li>
-									<li>
-										<Link
-											to="/jobs-created"
-											className="block px-4 py-2 hover:bg-gray-100"
-											onClick={closeDropdowns}
-										>
-											My Jobs
-										</Link>
-									</li>
+									{username !== "admin" && (
+										<>
+											<li>
+												<Link
+													to="/jobs"
+													className="block px-4 py-2 hover:bg-gray-100"
+													onClick={closeDropdowns}
+												>
+													Browse Jobs
+												</Link>
+											</li>
+											<li>
+												<Link
+													to="/jobs-applied"
+													className="block px-4 py-2 hover:bg-gray-100"
+													onClick={closeDropdowns}
+												>
+													Jobs Applied
+												</Link>
+											</li>
+											<li>
+												<Link
+													to="/save-jobs"
+													className="block px-4 py-2 hover:bg-gray-100"
+													onClick={closeDropdowns}
+												>
+													Saved Jobs
+												</Link>
+											</li>
+										</>
+									)}
+									{username === "admin" && (
+										<>
+											<li>
+												<Link
+													to="/jobs-created"
+													className="block px-4 py-2 hover:bg-gray-100"
+													onClick={closeDropdowns}
+												>
+													My Jobs
+												</Link>
+											</li>
+										</>
+									)}
 								</ul>
 							)}
 						</li>
 
-						<li>
-							<Link
-								to="/post-job"
-								className="hover:text-gray-200 transition"
-								onClick={closeDropdowns}
-							>
-								Post a Job
-							</Link>
-						</li>
+						{username === "admin" && (
+							<>
+								<li>
+									<Link
+										to="/post-job"
+										className="hover:text-gray-200 transition"
+										onClick={closeDropdowns}
+									>
+										Post a Job
+									</Link>
+								</li>
+							</>
+						)}
 
 						{/* Account Dropdown */}
 						<li ref={accountRef} className="relative">
@@ -193,51 +208,60 @@ const NavBar: React.FC = () => {
 								Home
 							</Link>
 						</li>
-						<li>
-							<Link
-								to="/jobs"
-								className="block text-white hover:underline"
-								onClick={() => setMenuOpen(false)}
-							>
-								Jobs
-							</Link>
-						</li>
-						<li>
-							<Link
-								to="/jobs-applied"
-								className="block text-white hover:underline"
-								onClick={() => setMenuOpen(false)}
-							>
-								Jobs Applied
-							</Link>
-						</li>
-						<li>
-							<Link
-								to="/save-jobs"
-								className="block text-white hover:underline"
-								onClick={() => setMenuOpen(false)}
-							>
-								Saved Jobs
-							</Link>
-						</li>
-						<li>
-							<Link
-								to="/jobs-created"
-								className="block text-white hover:underline"
-								onClick={() => setMenuOpen(false)}
-							>
-								My Jobs
-							</Link>
-						</li>
-						<li>
-							<Link
-								to="/post-job"
-								className="block text-white hover:underline"
-								onClick={() => setMenuOpen(false)}
-							>
-								Post a Job
-							</Link>
-						</li>
+						{username !== "admin" && (
+							<>
+								<li>
+									<Link
+										to="/jobs"
+										className="block text-white hover:underline"
+										onClick={() => setMenuOpen(false)}
+									>
+										Jobs
+									</Link>
+								</li>
+								<li>
+									<Link
+										to="/jobs-applied"
+										className="block text-white hover:underline"
+										onClick={() => setMenuOpen(false)}
+									>
+										Jobs Applied
+									</Link>
+								</li>
+								<li>
+									<Link
+										to="/save-jobs"
+										className="block text-white hover:underline"
+										onClick={() => setMenuOpen(false)}
+									>
+										Saved Jobs
+									</Link>
+								</li>
+							</>
+						)}
+
+						{username === "admin" && (
+							<>
+								<li>
+									<Link
+										to="/jobs-created"
+										className="block text-white hover:underline"
+										onClick={() => setMenuOpen(false)}
+									>
+										My Jobs
+									</Link>
+								</li>
+								<li>
+									<Link
+										to="/post-job"
+										className="block text-white hover:underline"
+										onClick={() => setMenuOpen(false)}
+									>
+										Post a Job
+									</Link>
+								</li>
+							</>
+						)}
 						<li>
 							<Link
 								to="/profile"

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../axios";
 
 interface Job {
 	id: number;
@@ -20,8 +20,9 @@ const Jobs: React.FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 	const [appliedJobs, setAppliedJobs] = useState(new Set());
-	const [isSaved, setIsSaved] = useState(false);
 	const [savedJobs, setSavedJobs] = useState(new Set<number>());
+
+	console.log(success);
 
 	const [applicationData, setApplicationData] = useState({
 		email: "",
@@ -61,10 +62,9 @@ const Jobs: React.FC = () => {
 					throw new Error("Not authenticated");
 				}
 
-				const response = await axios.get(
-					"http://localhost:8000/api/v1/job?page=1&size=50",
-					{ headers: { Authorization: `Bearer ${accessToken}` } }
-				);
+				const response = await api.get("/job?page=1&size=50", {
+					headers: { Authorization: `Bearer ${accessToken}` },
+				});
 				console.log("API Response:", response.data);
 				setJobs(response.data.items);
 			} catch (err) {
@@ -86,8 +86,8 @@ const Jobs: React.FC = () => {
 			const appliedSet = new Set();
 			for (const job of jobs) {
 				try {
-					const response = await axios.get(
-						`http://localhost:8000/api/v1/applications/user-job?user_id=${userId}&job_id=${job.id}`,
+					const response = await api.get(
+						`/applications/user-job?user_id=${userId}&job_id=${job.id}`,
 						{ headers: { Authorization: `Bearer ${accessToken}` } }
 					);
 					if (response.status === 200) {
@@ -108,7 +108,9 @@ const Jobs: React.FC = () => {
 	}, [jobs, userId]);
 
 	const handleChange = (
-		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+		e: React.ChangeEvent<
+			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+		>
 	) => {
 		setApplicationData({ ...applicationData, [e.target.name]: e.target.value });
 	};
@@ -156,8 +158,8 @@ const Jobs: React.FC = () => {
 				throw new Error("Not authenticated");
 			}
 
-			const response = await axios.post(
-				`http://localhost:8000/api/v1/application/${selectedJob.id}`,
+			const response = await api.post(
+				`/application/${selectedJob.id}`,
 				formData,
 				{
 					headers: {
@@ -188,10 +190,9 @@ const Jobs: React.FC = () => {
 				setIsToastVisible(true);
 				throw new Error("Not authenticated");
 			}
-			const response = await axios.get(
-				`http://localhost:8000/api/v1/job/${jobId}`,
-				{ headers: { Authorization: `Bearer ${accessToken}` } }
-			);
+			const response = await api.get(`/job/${jobId}`, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			});
 			setSelectedJob(response.data);
 			setIsModalOpen(true);
 		} catch (error) {
@@ -208,8 +209,8 @@ const Jobs: React.FC = () => {
 				throw new Error("Not authenticated");
 			}
 
-			const response = await axios.post(
-				"http://localhost:8000/api/v1/save-job",
+			const response = await api.post(
+				"/save-job",
 				{ user_id: userId, job_id: jobId },
 				{ headers: { Authorization: `Bearer ${accessToken}` } }
 			);
@@ -237,8 +238,8 @@ const Jobs: React.FC = () => {
 			await Promise.all(
 				jobs.map(async (job) => {
 					try {
-						await axios.get(
-							`http://localhost:8000/api/v1/save-job/user-job?user_id=${userId}&job_id=${job.id}`
+						await api.get(
+							`/save-job/user-job?user_id=${userId}&job_id=${job.id}`
 						);
 						// If request succeeds, add job ID to savedJobs
 						savedJobIds.add(job.id);
@@ -381,12 +382,20 @@ const Jobs: React.FC = () => {
 								placeholder="Mobile Number"
 								className="w-full p-2 mb-2 border rounded"
 							/>
-							<input
+							<select
 								name="expected_salary"
 								onChange={handleChange}
-								placeholder="Expected Salary"
+								value={applicationData.expected_salary}
 								className="w-full p-2 mb-2 border rounded"
-							/>
+							>
+								<option value="">Select Expected Salary</option>
+								<option value="5000">5000</option>
+								<option value="10000">10000</option>
+								<option value="15000">15000</option>
+								<option value="20000">20000</option>
+								<option value="30000">30000</option>
+							</select>
+
 							<div className="mb-4">
 								<label className="block text-sm font-medium text-gray-700">
 									Upload Resume

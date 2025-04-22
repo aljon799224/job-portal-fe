@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useAutoHideToast } from "../hooks/useAutoHideToast";
+import api from "../axios";
 
 interface Job {
 	id: number;
@@ -11,6 +11,8 @@ interface Job {
 	salary: string;
 	user_id: number;
 }
+
+const username = localStorage.getItem("username");
 
 const HomePage = () => {
 	const [message, setMessage] = useState<string | null>(null);
@@ -62,10 +64,9 @@ const HomePage = () => {
 					throw new Error("Not authenticated");
 				}
 
-				const response = await axios.get(
-					"http://localhost:8000/api/v1/job?page=1&size=50",
-					{ headers: { Authorization: `Bearer ${accessToken}` } }
-				);
+				const response = await api.get("/job?page=1&size=50", {
+					headers: { Authorization: `Bearer ${accessToken}` },
+				});
 
 				const jobList = Array.isArray(response.data.items)
 					? response.data.items.slice(0, 6)
@@ -92,8 +93,8 @@ const HomePage = () => {
 			const appliedSet = new Set();
 			for (const job of jobs) {
 				try {
-					const response = await axios.get(
-						`http://localhost:8000/api/v1/applications/user-job?user_id=${userId}&job_id=${job.id}`,
+					const response = await api.get(
+						`/applications/user-job?user_id=${userId}&job_id=${job.id}`,
 						{ headers: { Authorization: `Bearer ${accessToken}` } }
 					);
 					if (response.status === 200) {
@@ -128,7 +129,9 @@ const HomePage = () => {
 	};
 
 	const handleChange = (
-		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+		e: React.ChangeEvent<
+			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+		>
 	) => {
 		setApplicationData({ ...applicationData, [e.target.name]: e.target.value });
 	};
@@ -176,8 +179,8 @@ const HomePage = () => {
 				throw new Error("Not authenticated");
 			}
 
-			const response = await axios.post(
-				`http://localhost:8000/api/v1/application/${selectedJob.id}`,
+			const response = await api.post(
+				`/application/${selectedJob.id}`,
 				formData,
 				{
 					headers: {
@@ -207,10 +210,9 @@ const HomePage = () => {
 				setIsToastVisible(true);
 				throw new Error("Not authenticated");
 			}
-			const response = await axios.get(
-				`http://localhost:8000/api/v1/job/${jobId}`,
-				{ headers: { Authorization: `Bearer ${accessToken}` } }
-			);
+			const response = await api.get(`/job/${jobId}`, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			});
 			setSelectedJob(response.data);
 			setIsModalOpen(true);
 		} catch (error) {
@@ -321,7 +323,7 @@ const HomePage = () => {
 								</p>
 								<p className="mt-2 text-sm">Location: {job.location}</p>
 								<p className="mt-2 text-sm">Salary: {job.salary}</p>
-								{userId !== job.user_id && (
+								{userId !== job.user_id && username !== "admin" && (
 									<button
 										onClick={() => openApplyModal(job)}
 										className={`mt-4 px-4 py-2 rounded mr-2 ${
@@ -366,12 +368,19 @@ const HomePage = () => {
 								placeholder="Mobile Number"
 								className="w-full p-2 mb-2 border rounded"
 							/>
-							<input
+							<select
 								name="expected_salary"
 								onChange={handleChange}
-								placeholder="Expected Salary"
+								value={applicationData.expected_salary}
 								className="w-full p-2 mb-2 border rounded"
-							/>
+							>
+								<option value="">Select Expected Salary</option>
+								<option value="5000">5000</option>
+								<option value="10000">10000</option>
+								<option value="15000">15000</option>
+								<option value="20000">20000</option>
+								<option value="30000">30000</option>
+							</select>
 							<div className="mb-4">
 								<label className="block text-sm font-medium text-gray-700">
 									Upload Resume

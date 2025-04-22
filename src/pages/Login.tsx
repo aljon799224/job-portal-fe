@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAutoHideToast } from "../hooks/useAutoHideToast";
-import axios from "axios";
+import api from "../axios";
 
 const Login: React.FC = () => {
 	const [formData, setFormData] = useState({
@@ -13,6 +13,10 @@ const Login: React.FC = () => {
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	const [isToastVisible, setIsToastVisible] = useState(false);
+
+	const [attemptCount, setAttemptCount] = useState(0);
+	const [isLocked, setIsLocked] = useState(false);
+	const [lockoutTimer, setLockoutTimer] = useState(30);
 
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -37,25 +41,55 @@ const Login: React.FC = () => {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		console.log("Logging in:", formData);
+
+		if (isLocked) {
+			setErrorMessage(`Too many attempts. Please wait ${lockoutTimer}s.`);
+			setIsToastVisible(true);
+			return;
+		}
+
 		try {
-			const response = await axios.post(
-				"http://localhost:8000/api/v1/auth/login/token",
-				formData,
-				{
-					headers: {
-						"Content-Type": "application/x-www-form-urlencoded",
-					},
-				}
-			);
-			const { access_token, user_id } = response.data;
+			const response = await api.post("/auth/login/token", formData, {
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+			});
+
+			// ✅ Reset attempt count on successful login
+			setAttemptCount(0);
+			const { access_token, user_id, username } = response.data;
 			localStorage.setItem("token", access_token);
 			localStorage.setItem("user_id", user_id);
-
+			localStorage.setItem("username", username);
 			navigate("/", { state: { message: "Login Successful!" } });
+			window.location.reload();
 		} catch (error) {
+			const newAttemptCount = attemptCount + 1;
+			setAttemptCount(newAttemptCount);
 			setSuccessMessage("");
 			setErrorMessage("Invalid username or password.");
 			setIsToastVisible(true);
+
+			// 🚨 Lock after 3 attempts
+			if (newAttemptCount >= 3) {
+				setIsLocked(true);
+				setErrorMessage("Too many failed attempts. Please wait 30 seconds.");
+				setIsToastVisible(true);
+
+				let countdown = 30;
+				setLockoutTimer(countdown);
+
+				const interval = setInterval(() => {
+					countdown -= 1;
+					setLockoutTimer(countdown);
+
+					if (countdown <= 0) {
+						clearInterval(interval);
+						setIsLocked(false);
+						setAttemptCount(0);
+					}
+				}, 1000);
+			}
 		}
 	};
 
@@ -189,12 +223,9 @@ const Login: React.FC = () => {
 					</div>
 
 					<div className="flex justify-between text-sm">
-						{/* <Link
-							to="/reset-password"
-							className="text-[#ff7409] hover:underline"
-						>
+						<Link to="/send-otp" className="text-[#ff7409] hover:underline">
 							Forgot Password?
-						</Link> */}
+						</Link>
 						<Link to="/register" className="text-[#ff7409] hover:underline">
 							Create an account
 						</Link>
@@ -202,9 +233,15 @@ const Login: React.FC = () => {
 
 					<button
 						type="submit"
-						className="w-full bg-[#ff7409] text-white py-2 rounded hover:bg-[#e66508] transition"
+						disabled={isLocked}
+						// className="w-full bg-[#ff7409] text-white py-2 rounded hover:bg-[#e66508] transition"
+						className={`w-full py-3 px-4 text-sm tracking-wider font-semibold rounded-md text-white ${
+							isLocked
+								? "bg-gray-400 cursor-not-allowed"
+								: "bg-[#ff7409] hover:bg-[#e66508]"
+						}`}
 					>
-						Login
+						{isLocked ? `Wait ${lockoutTimer}s` : "Log In"}
 					</button>
 				</form>
 			</div>
