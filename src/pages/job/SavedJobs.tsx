@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import api from "../../axios";
+import usePagination from "../../hooks/usePagination";
 
 interface SavedJobs {
 	id: number;
@@ -102,25 +103,24 @@ const SavedJobs: React.FC = () => {
 			checkApplications();
 		}
 	}, [savedJobs, userId]);
+	const fetchSavedJobs = async () => {
+		try {
+			if (!accessToken) {
+				setMessage("Not authenticated");
+				setIsToastVisible(true);
+				throw new Error("Not authenticated");
+			}
+
+			const response = await axios.get(API_URL, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			});
+			setSavedJobs(response.data.items || []);
+		} catch (error) {
+			console.error("Error fetching saved jobs:", error);
+		}
+	};
 
 	useEffect(() => {
-		const fetchSavedJobs = async () => {
-			try {
-				if (!accessToken) {
-					setMessage("Not authenticated");
-					setIsToastVisible(true);
-					throw new Error("Not authenticated");
-				}
-
-				const response = await axios.get(API_URL, {
-					headers: { Authorization: `Bearer ${accessToken}` },
-				});
-				setSavedJobs(response.data.items || []);
-			} catch (error) {
-				console.error("Error fetching saved jobs:", error);
-			}
-		};
-
 		fetchSavedJobs();
 	}, []);
 
@@ -217,7 +217,13 @@ const SavedJobs: React.FC = () => {
 		}
 	};
 
-	console.log(selectedJob);
+	const {
+		currentPage,
+		totalPages,
+		paginatedData,
+		goToNextPage,
+		goToPreviousPage,
+	} = usePagination(savedJobs, 10, fetchSavedJobs);
 
 	return (
 		<div className="container mx-auto my-8 px-4 flex-1">
@@ -272,8 +278,8 @@ const SavedJobs: React.FC = () => {
 				Your favorite job listings, saved for later.
 			</p>
 			<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-				{savedJobs.length > 0 ? (
-					savedJobs.map((job, index) => (
+				{paginatedData.length > 0 ? (
+					paginatedData.map((job, index) => (
 						<div
 							key={index}
 							className="border p-4 rounded shadow hover:shadow-lg transition"
@@ -304,6 +310,27 @@ const SavedJobs: React.FC = () => {
 				) : (
 					<p className="text-center text-gray-600 mt-6">No saved jobs found.</p>
 				)}
+			</div>
+			<div className="flex items-center justify-center space-x-2 mt-4">
+				<button
+					className="px-3 py-1 border rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+					onClick={goToPreviousPage}
+					disabled={currentPage === 1}
+				>
+					Prev
+				</button>
+
+				<span className="px-4 py-1 border rounded-lg bg-blue-100">
+					Page {currentPage} of {totalPages}
+				</span>
+
+				<button
+					className="px-3 py-1 border rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+					onClick={goToNextPage}
+					disabled={currentPage === totalPages}
+				>
+					Next
+				</button>
 			</div>
 			{isApplyModalOpen && (
 				<form action="" onSubmit={handleSubmit}>

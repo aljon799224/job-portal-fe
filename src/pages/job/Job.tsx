@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../axios";
+import usePagination from "../../hooks/usePagination";
 
 interface Job {
 	id: number;
@@ -53,24 +54,25 @@ const Jobs: React.FC = () => {
 		setSelectedJob(null);
 	};
 
-	useEffect(() => {
-		const fetchJobs = async () => {
-			try {
-				if (!accessToken) {
-					setMessage("Not authenticated");
-					setIsToastVisible(true);
-					throw new Error("Not authenticated");
-				}
-
-				const response = await api.get("/job?page=1&size=50", {
-					headers: { Authorization: `Bearer ${accessToken}` },
-				});
-				console.log("API Response:", response.data);
-				setJobs(response.data.items);
-			} catch (err) {
-				setMessage("Failed to load jobs");
+	const fetchJobs = async () => {
+		try {
+			if (!accessToken) {
+				setMessage("Not authenticated");
+				setIsToastVisible(true);
+				throw new Error("Not authenticated");
 			}
-		};
+
+			const response = await api.get("/job?page=1&size=50", {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			});
+			console.log("API Response:", response.data);
+			setJobs(response.data.items);
+		} catch (err) {
+			setMessage("Failed to load jobs");
+		}
+	};
+
+	useEffect(() => {
 		fetchJobs();
 	}, []);
 
@@ -260,6 +262,15 @@ const Jobs: React.FC = () => {
 			checkSavedJobs();
 		}
 	}, [jobs, userId]);
+
+	const {
+		currentPage,
+		totalPages,
+		paginatedData,
+		goToNextPage,
+		goToPreviousPage,
+	} = usePagination(jobs, 10, fetchJobs);
+
 	return (
 		<div className="container mx-auto my-8 px-4 flex-1">
 			{isToastVisible && (
@@ -313,7 +324,7 @@ const Jobs: React.FC = () => {
 				Explore exciting career opportunities.
 			</p>
 			<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-				{jobs.map((job) => (
+				{paginatedData.map((job) => (
 					<div
 						key={job.id}
 						className="border p-4 rounded shadow hover:shadow-lg transition"
@@ -362,6 +373,27 @@ const Jobs: React.FC = () => {
 						</button>
 					</div>
 				))}
+			</div>
+			<div className="flex items-center justify-center space-x-2 mt-4">
+				<button
+					className="px-3 py-1 border rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+					onClick={goToPreviousPage}
+					disabled={currentPage === 1}
+				>
+					Prev
+				</button>
+
+				<span className="px-4 py-1 border rounded-lg bg-blue-100">
+					Page {currentPage} of {totalPages}
+				</span>
+
+				<button
+					className="px-3 py-1 border rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+					onClick={goToNextPage}
+					disabled={currentPage === totalPages}
+				>
+					Next
+				</button>
 			</div>
 			{isApplyModalOpen && (
 				<form action="" onSubmit={handleSubmit}>

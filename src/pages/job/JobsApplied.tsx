@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAutoHideToast } from "../../hooks/useAutoHideToast";
 import api from "../../axios";
+import usePagination from "../../hooks/usePagination";
 
 interface Job {
 	id: number;
@@ -24,27 +25,26 @@ const JobsApplied: React.FC = () => {
 
 	const closeToast = () => setIsToastVisible(false);
 
+	const fetchAppliedJobs = async () => {
+		if (!accessToken || !userId) {
+			setMessage("Not authenticated");
+			setIsToastVisible(true);
+			throw new Error("Not authenticated");
+		}
+
+		try {
+			const response = await api.get(`/jobs/applied/${userId}?page=1&size=50`, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			});
+			setJobs(response.data.items);
+		} catch (err) {
+			setMessage("Failed to load applied jobs. Please try again.");
+		} finally {
+			console.log("done");
+		}
+	};
+
 	useEffect(() => {
-		const fetchAppliedJobs = async () => {
-			if (!accessToken || !userId) {
-				setMessage("Not authenticated");
-				setIsToastVisible(true);
-				throw new Error("Not authenticated");
-			}
-
-			try {
-				const response = await api.get(
-					`/jobs/applied/${userId}?page=1&size=50`,
-					{ headers: { Authorization: `Bearer ${accessToken}` } }
-				);
-				setJobs(response.data.items);
-			} catch (err) {
-				setMessage("Failed to load applied jobs. Please try again.");
-			} finally {
-				console.log("done");
-			}
-		};
-
 		fetchAppliedJobs();
 	}, [userId]);
 
@@ -65,6 +65,14 @@ const JobsApplied: React.FC = () => {
 			setIsToastVisible(true);
 		}
 	};
+
+	const {
+		currentPage,
+		totalPages,
+		paginatedData,
+		goToNextPage,
+		goToPreviousPage,
+	} = usePagination(jobs, 10, fetchAppliedJobs);
 
 	return (
 		<div className="container mx-auto my-8 px-4 flex-1">
@@ -123,7 +131,7 @@ const JobsApplied: React.FC = () => {
 				<p className="text-center text-gray-500 mt-4">No applied jobs found.</p>
 			) : (
 				<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-					{jobs.map((job, index) => (
+					{paginatedData.map((job: any, index: any) => (
 						<div
 							key={index}
 							className="border p-4 rounded shadow hover:shadow-lg transition"
@@ -148,6 +156,27 @@ const JobsApplied: React.FC = () => {
 					))}
 				</div>
 			)}
+			<div className="flex items-center justify-center space-x-2 mt-4">
+				<button
+					className="px-3 py-1 border rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+					onClick={goToPreviousPage}
+					disabled={currentPage === 1}
+				>
+					Prev
+				</button>
+
+				<span className="px-4 py-1 border rounded-lg bg-blue-100">
+					Page {currentPage} of {totalPages}
+				</span>
+
+				<button
+					className="px-3 py-1 border rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+					onClick={goToNextPage}
+					disabled={currentPage === totalPages}
+				>
+					Next
+				</button>
+			</div>
 
 			{/* Modal */}
 			{isModalOpen && selectedJob && (
