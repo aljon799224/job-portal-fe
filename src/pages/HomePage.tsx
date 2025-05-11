@@ -293,7 +293,7 @@ const HomePage = () => {
 			<header className="relative text-white text-center py-50 bg-[#ffb380]">
 				<div
 					className="absolute inset-0 bg-cover bg-center opacity-50"
-					style={{ backgroundImage: "url('/src/assets/municipal-bg.jpeg')" }}
+					style={{ backgroundImage: "url('/municipal-bg.jpeg')" }}
 				></div>
 				<div className="relative z-10">
 					<h2 className="text-3xl md:text-5xl font-bold">

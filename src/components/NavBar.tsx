@@ -55,7 +55,7 @@ const NavBar: React.FC = () => {
 					{/* Logo */}
 					<div className="flex items-center space-x-2">
 						<img
-							src="/src/assets/peso-logo.png"
+							src="/peso-logo.png"
 							alt="JobPortal Logo"
 							className="h-12 w-12 md:h-16 md:w-16"
 						/>
