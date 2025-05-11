@@ -90,48 +90,6 @@ const ApplicationsList: React.FC = () => {
 		}
 	};
 
-	const handlePreviewResume = async (filePath: string) => {
-		if (!filePath) {
-			setMessage("Resume not available");
-			setIsToastVisible(true);
-			return;
-		}
-
-		if (!accessToken) {
-			setMessage("Not authenticated");
-			setIsToastVisible(true);
-			return;
-		}
-
-		// Extract only the filename from the path
-		const filename = filePath.split("/").pop(); // ✅ This ensures only the filename is sent
-
-		try {
-			const encodedFilename = encodeURIComponent(filename!);
-			const response = await api.get(
-				`/application/download/${encodedFilename}`,
-				{
-					headers: { Authorization: `Bearer ${accessToken}` },
-					responseType: "blob",
-				}
-			);
-
-			// Create a new URL for the resume preview
-			const url = window.URL.createObjectURL(new Blob([response.data]));
-			const newTab = window.open();
-			if (newTab) {
-				newTab.document.title = "Resume Preview";
-				newTab.document.body.innerHTML = `
-			  <h2>Resume Preview</h2>
-			  <iframe src="${url}" width="100%" height="100%" style="border: none;"></iframe>
-			`;
-			}
-		} catch (error) {
-			setMessage("Failed to preview resume");
-			setIsToastVisible(true);
-		}
-	};
-
 	return (
 		<div className="container mx-auto my-8 px-4 flex-1">
 			{isToastVisible && (
