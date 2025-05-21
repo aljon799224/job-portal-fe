@@ -38,6 +38,7 @@ const Jobs: React.FC = () => {
 	const userId = localStorage.getItem("user_id")
 		? parseInt(localStorage.getItem("user_id")!)
 		: null;
+	const [salaryFilter, setSalaryFilter] = useState("");
 
 	const closeToast = () => setIsToastVisible(false);
 
@@ -264,13 +265,23 @@ const Jobs: React.FC = () => {
 		}
 	}, [jobs, userId]);
 
+	const filteredJobs = jobs.filter((job) => {
+		if (salaryFilter === "lt30000") return parseInt(job.salary) < 30000;
+		if (salaryFilter === "30000to50000") {
+			const salary = parseInt(job.salary);
+			return salary >= 30000 && salary <= 50000;
+		}
+		if (salaryFilter === "gt50000") return parseInt(job.salary) > 50000;
+		return true; // If no filter selected, include all
+	});
+
 	const {
 		currentPage,
 		totalPages,
 		paginatedData,
 		goToNextPage,
 		goToPreviousPage,
-	} = usePagination(jobs, 10, fetchJobs);
+	} = usePagination(filteredJobs, 10, fetchJobs);
 
 	return (
 		<div className="container mx-auto my-8 px-4 flex-1">
@@ -324,6 +335,18 @@ const Jobs: React.FC = () => {
 			<p className="text-center text-gray-600 mt-2">
 				Explore exciting career opportunities.
 			</p>
+			<select
+				name="salaryFilter"
+				value={salaryFilter}
+				onChange={(e) => setSalaryFilter(e.target.value)}
+				className="border p-2 rounded"
+			>
+				<option value="">All</option>
+				<option value="lt30000">Less than 30,000</option>
+				<option value="30000to50000">30,000 to 50,000</option>
+				<option value="gt50000">More than 50,000</option>
+			</select>
+
 			<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
 				{paginatedData.map((job) => (
 					<div
