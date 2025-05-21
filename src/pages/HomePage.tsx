@@ -10,6 +10,7 @@ interface Job {
 	description: string;
 	salary: string;
 	user_id: number;
+	logo: string;
 }
 
 const username = localStorage.getItem("username");
@@ -314,6 +315,18 @@ const HomePage = () => {
 								key={job.id}
 								className="border p-4 rounded shadow hover:shadow-lg transition"
 							>
+								{job.logo && (
+									<div className="h-16 w-16 rounded-full overflow-hidden border shrink-0 bg-gray-100 flex items-center justify-center">
+										<img
+											src={`${
+												import.meta.env.VITE_API_BASE_URL_IMG
+											}/public/logos/${job.logo}`}
+											alt={`${job.title} logo`}
+											className="h-full w-full object-cover"
+										/>
+									</div>
+								)}
+
 								<h4 className="text-xl font-bold">{job.title}</h4>
 								<p className="mt-2 text-sm">
 									Description:{" "}

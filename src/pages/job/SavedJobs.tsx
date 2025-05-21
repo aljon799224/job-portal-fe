@@ -423,6 +423,17 @@ const SavedJobs: React.FC = () => {
 			{isModalOpen && selectedJob && (
 				<div className="fixed inset-0 backdrop-blur-md flex justify-center items-center z-50">
 					<div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+						{selectedJob.logo && (
+							<div className="h-16 w-16 rounded-full overflow-hidden border shrink-0 bg-gray-100 flex items-center justify-center">
+								<img
+									src={`${import.meta.env.VITE_API_BASE_URL_IMG}/public/logos/${
+										selectedJob.logo
+									}`}
+									alt={`${selectedJob.title} logo`}
+									className="h-full w-full object-cover"
+								/>
+							</div>
+						)}
 						<h3 className="text-xl font-bold">{selectedJob.title}</h3>
 						<p className="mt-2">Location: {selectedJob.location}</p>
 						<p className="mt-2">Description: {selectedJob.description}</p>

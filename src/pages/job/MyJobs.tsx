@@ -10,6 +10,8 @@ interface Job {
 	location: string;
 	description: string;
 	salary: string;
+	logo: string;
+	company: string;
 }
 
 const PostedJobs: React.FC = () => {
@@ -41,7 +43,7 @@ const PostedJobs: React.FC = () => {
 			const response = await api.get(`/jobs/user/${userId}?page=1&size=50`, {
 				headers: { Authorization: `Bearer ${accessToken}` },
 			});
-
+			console.log(response.data.items);
 			setJobs(response.data.items);
 		} catch (error) {
 			setMessage("Failed to fetch jobs.");
@@ -183,53 +185,75 @@ const PostedJobs: React.FC = () => {
 			<p className="text-center text-gray-600 mt-2">
 				Manage and track the jobs you've posted.
 			</p>
-
 			<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
 				{paginatedData.map((job) => (
 					<div
 						key={job.id}
-						className="border p-4 rounded shadow hover:shadow-lg transition"
+						className="border p-4 rounded-xl shadow-md hover:shadow-lg transition bg-white flex flex-col gap-4 w-full max-w-full overflow-hidden"
 					>
-						<h3 className="text-xl font-bold">{job.title}</h3>
+						{/* Logo and Job Info */}
+						<div className="flex gap-4 items-start w-full max-w-full overflow-hidden">
+							{job.logo && (
+								<div className="h-16 w-16 rounded-full overflow-hidden border shrink-0 bg-gray-100 flex items-center justify-center">
+									<img
+										src={`${
+											import.meta.env.VITE_API_BASE_URL_IMG
+										}/public/logos/${job.logo}`}
+										alt={`${job.title} logo`}
+										className="h-full w-full object-cover"
+									/>
+								</div>
+							)}
 
-						<p className="text-gray-600 font-semibold">
-							Location: <span className="font-normal">{job.location}</span>
-						</p>
+							<div className="flex flex-col overflow-hidden w-full">
+								<h3 className="text-xl font-bold text-gray-800 break-words">
+									{job.title}
+								</h3>
 
-						<p className="text-gray-600 font-semibold">
-							Description:{" "}
-							<span className="font-normal">
-								{job.description.length > 15
-									? `${job.description.slice(0, 15)}...`
-									: job.description}
-							</span>
-						</p>
+								<p className="text-gray-600 break-words">
+									<span className="font-semibold">Company:</span> {job.company}
+								</p>
 
-						<p className="text-gray-600 font-semibold">
-							Salary: <span className="font-normal">{job.salary}</span>
-						</p>
+								<p className="text-gray-600 break-words">
+									<span className="font-semibold">Location:</span>{" "}
+									{job.location}
+								</p>
 
-						<div className="flex justify-between items-center mt-4">
+								<p className="text-gray-600 break-words">
+									<span className="font-semibold">Description:</span>{" "}
+									{job.description.length > 100
+										? `${job.description.slice(0, 100)}...`
+										: job.description}
+								</p>
+
+								<p className="text-gray-600 break-words">
+									<span className="font-semibold">Salary:</span> {job.salary}
+								</p>
+							</div>
+						</div>
+
+						{/* Buttons */}
+						<div className="flex flex-col sm:flex-row gap-2 mt-2">
 							<button
 								onClick={() => openEditModal(job)}
-								className="bg-[#ff7409] text-white px-4 py-2 rounded hover:bg-[#e06700]"
+								className="bg-[#ff7409] text-white px-4 py-2 rounded-lg hover:bg-[#e06700] transition w-full sm:w-auto"
 							>
 								Edit
 							</button>
 							<button
-								type="button"
 								onClick={() =>
 									navigate(`/jobs/applications/${job.id}`, {
 										state: { jobTitle: job.title },
 									})
 								}
-								className="bg-[#ff7409] text-white px-4 py-2 rounded hover:bg-[#e06700]"
+								className="bg-[#ff7409] text-white px-4 py-2 rounded-lg hover:bg-[#e06700] transition w-full sm:w-auto"
 							>
 								View Applications
 							</button>
 							<button
 								onClick={() => openDeleteModal(job)}
-								className="text-gray-500 hover:text-red-500 transition text-xl"
+								className="text-gray-500 hover:text-red-500 text-xl transition w-full sm:w-auto"
+								title="Delete Job"
 							>
 								🗑
 							</button>
@@ -258,7 +282,6 @@ const PostedJobs: React.FC = () => {
 					Next
 				</button>
 			</div>
-
 			{/* Edit Modal */}
 			{isEditModalOpen && selectedJob && (
 				<div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-md">
@@ -343,7 +366,6 @@ const PostedJobs: React.FC = () => {
 					</div>
 				</div>
 			)}
-
 			{/* Delete Modal */}
 			{isDeleteModalOpen && selectedJob && (
 				<div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-md">

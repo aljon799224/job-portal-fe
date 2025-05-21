@@ -10,6 +10,7 @@ const JobCreate: React.FC = () => {
 		location: "",
 		description: "",
 		salary: "",
+		logo: "",
 		user_id: 0, // Added user_id
 	});
 
@@ -34,7 +35,9 @@ const JobCreate: React.FC = () => {
 	}, []);
 
 	const handleChange = (
-		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+		e: React.ChangeEvent<
+			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+		>
 	) => {
 		setJobData({ ...jobData, [e.target.name]: e.target.value });
 	};
@@ -60,6 +63,7 @@ const JobCreate: React.FC = () => {
 				location: "",
 				description: "",
 				salary: "",
+				logo: "",
 				user_id: userId, // Retain user_id
 			});
 			navigate("/jobs-created", {
@@ -67,6 +71,30 @@ const JobCreate: React.FC = () => {
 			});
 		} catch (error) {
 			setMessage("Failed to post the job. Please try again.");
+		}
+	};
+
+	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		const formData = new FormData();
+		formData.append("file", file);
+
+		try {
+			const response = await api.post("/upload-logo/", formData, {
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			});
+
+			// Save the filename returned by the backend
+			const uploadedFilename = response.data.filename;
+			setJobData((prevData) => ({ ...prevData, logo: uploadedFilename }));
+		} catch (error) {
+			console.error("Logo upload failed", error);
+			setMessage("Failed to upload logo.");
+			setIsToastVisible(true);
 		}
 	};
 
@@ -173,15 +201,41 @@ const JobCreate: React.FC = () => {
 					/>
 				</div>
 
+				<select
+					name="salary"
+					value={jobData.salary}
+					onChange={handleChange}
+					className="border p-2 rounded w-full"
+				>
+					<option value="">Select salary</option>
+					{[
+						"10000",
+						"15000",
+						"20000",
+						"25000",
+						"30000",
+						"35000",
+						"40000",
+						"45000",
+						"50000",
+						"55000",
+						"60000",
+						"65000",
+						"70000",
+					].map((salary) => (
+						<option key={salary} value={salary}>
+							{salary}
+						</option>
+					))}
+				</select>
+
 				<div className="mb-4">
-					<label className="block font-semibold">Salary</label>
+					<label className="block font-semibold">Company Logo</label>
 					<input
-						type="text"
-						name="salary"
-						value={jobData.salary}
-						onChange={handleChange}
+						type="file"
+						accept="image/*"
+						onChange={handleFileChange}
 						className="w-full p-2 border rounded"
-						required
 					/>
 				</div>
 
