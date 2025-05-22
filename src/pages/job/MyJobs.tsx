@@ -22,6 +22,10 @@ const PostedJobs: React.FC = () => {
 	const [isToastVisible, setIsToastVisible] = useState(false);
 	const [message, setMessage] = useState("");
 
+	const [startDate, setStartDate] = useState("");
+	const [endDate, setEndDate] = useState("");
+	const [applications, setApplications] = useState([]);
+
 	const accessToken = localStorage.getItem("token");
 	const userId = localStorage.getItem("user_id");
 
@@ -124,6 +128,93 @@ const PostedJobs: React.FC = () => {
 		}
 	};
 
+	const handleDownloadCSV = async () => {
+		if (!startDate || !endDate) {
+			setMessage("Please select both start and end dates.");
+			setIsToastVisible(true);
+			return;
+		}
+
+		try {
+			const res = await api.get("/application?page=1&size=100", {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			});
+
+			const filtered = res.data.items.filter((app: any) => {
+				const appliedAt = new Date(app.applied_at);
+				return (
+					appliedAt >= new Date(startDate) &&
+					appliedAt <= new Date(endDate + "T23:59:59")
+				);
+			});
+
+			const userCache: Record<number, string> = {};
+			const jobCache: Record<number, string> = {};
+
+			const csvData = await Promise.all(
+				filtered.map(async (app: any) => {
+					let fullName = "Unknown";
+					let jobTitle = "Unknown";
+
+					if (userCache[app.user_id]) {
+						fullName = userCache[app.user_id];
+					} else {
+						try {
+							const userRes = await api.get(`/user/${app.user_id}`, {
+								headers: { Authorization: `Bearer ${accessToken}` },
+							});
+							const u = userRes.data;
+							fullName =
+								`${u.first_name} ${u.middle_name} ${u.last_name}`.trim();
+							userCache[app.user_id] = fullName;
+						} catch {
+							fullName = "Unavailable";
+						}
+					}
+
+					if (jobCache[app.job_id]) {
+						jobTitle = jobCache[app.job_id];
+					} else {
+						try {
+							const jobRes = await api.get(`/job/${app.job_id}`, {
+								headers: { Authorization: `Bearer ${accessToken}` },
+							});
+							jobTitle = jobRes.data.title;
+							jobCache[app.job_id] = jobTitle;
+						} catch {
+							jobTitle = "Unavailable";
+						}
+					}
+
+					return [
+						fullName,
+						app.email,
+						app.mobile_number,
+						jobTitle,
+						app.applied_at,
+					];
+				})
+			);
+
+			const csvHeader =
+				"Applicant Name,Email,Mobile Number,Job Title,Applied At\n";
+			const csvRows = csvData.map((row) => row.join(","));
+			const csvContent = csvHeader + csvRows.join("\n");
+
+			const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `applications_${startDate}_to_${endDate}.csv`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch (err) {
+			console.error("CSV download error:", err);
+			setMessage("Failed to download applications.");
+			setIsToastVisible(true);
+		}
+	};
+
 	const {
 		currentPage,
 		totalPages,
@@ -185,6 +276,39 @@ const PostedJobs: React.FC = () => {
 			<p className="text-center text-gray-600 mt-2">
 				Manage and track the jobs you've posted.
 			</p>
+			<div className="flex flex-col items-center justify-center mt-6">
+				<p className="text-sm text-gray-700 mb-2">
+					Select a date range to download job applications submitted within that
+					period.
+				</p>
+				<div className="flex flex-col md:flex-row gap-4 items-center">
+					<div>
+						<label className="text-sm mr-2">Start Date:</label>
+						<input
+							type="date"
+							className="border rounded px-2 py-1"
+							value={startDate}
+							onChange={(e) => setStartDate(e.target.value)}
+						/>
+					</div>
+					<div>
+						<label className="text-sm mr-2">End Date:</label>
+						<input
+							type="date"
+							className="border rounded px-2 py-1"
+							value={endDate}
+							onChange={(e) => setEndDate(e.target.value)}
+						/>
+					</div>
+					<button
+						className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+						onClick={handleDownloadCSV}
+					>
+						Download CSV
+					</button>
+				</div>
+			</div>
+
 			<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
 				{paginatedData.map((job) => (
 					<div
