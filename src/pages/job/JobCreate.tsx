@@ -22,6 +22,8 @@ const JobCreate: React.FC = () => {
 	const userId = Number(localStorage.getItem("user_id")) || 0;
 	const accessToken = localStorage.getItem("token");
 
+	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
 	// Automatically hide toast after 3 seconds
 	useAutoHideToast(isToastVisible, setIsToastVisible);
 
@@ -87,6 +89,8 @@ const JobCreate: React.FC = () => {
 					"Content-Type": "multipart/form-data",
 				},
 			});
+
+			setSelectedFile(file);
 
 			// Save the filename returned by the backend
 			const uploadedFilename = response.data.filename;
@@ -205,7 +209,7 @@ const JobCreate: React.FC = () => {
 					name="salary"
 					value={jobData.salary}
 					onChange={handleChange}
-					className="border p-2 rounded w-full"
+					className="border p-2 rounded w-full mb-2"
 				>
 					<option value="">Select salary</option>
 					{[
@@ -229,13 +233,25 @@ const JobCreate: React.FC = () => {
 					))}
 				</select>
 
-				<div className="mb-4">
-					<label className="block font-semibold">Company Logo</label>
+				<div className="mb-6 mt-2">
+					<label className="block font-semibold mb-2">Company Logo</label>
+					<div className="flex items-center gap-4">
+						<label
+							htmlFor="file-upload"
+							className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+						>
+							Upload Image
+						</label>
+						<span className="text-sm text-gray-600">
+							{selectedFile?.name || "No file selected"}
+						</span>
+					</div>
 					<input
+						id="file-upload"
 						type="file"
 						accept="image/*"
 						onChange={handleFileChange}
-						className="w-full p-2 border rounded"
+						className="hidden"
 					/>
 				</div>
 
