@@ -152,7 +152,6 @@ const ApplicationsList: React.FC = () => {
 						<li key={index} className="p-4 bg-white shadow rounded">
 							<p>Email: {app.email}</p>
 							<p>Mobile Number: {app.mobile_number}</p>
-							<p>Expected Salary: {app.expected_salary}</p>
 							<p>
 								Resume:{" "}
 								{app.resume ? (

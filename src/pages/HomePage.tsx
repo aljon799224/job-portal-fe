@@ -11,6 +11,7 @@ interface Job {
 	salary: string;
 	user_id: number;
 	logo: string;
+	company: string;
 }
 
 const username = localStorage.getItem("username");
@@ -328,13 +329,15 @@ const HomePage = () => {
 								)}
 
 								<h4 className="text-xl font-bold">{job.title}</h4>
+
+								<p className="mt-2 text-sm">Company: {job.company}</p>
+								<p className="mt-2 text-sm">Location: {job.location}</p>
 								<p className="mt-2 text-sm">
 									Description:{" "}
 									{job.description.length > 15
 										? `${job.description.slice(0, 15)}...`
 										: job.description}
 								</p>
-								<p className="mt-2 text-sm">Location: {job.location}</p>
 								<p className="mt-2 text-sm">Salary: {job.salary}</p>
 								{userId !== job.user_id && username !== "admin" && (
 									<button
@@ -381,19 +384,6 @@ const HomePage = () => {
 								placeholder="Mobile Number"
 								className="w-full p-2 mb-2 border rounded"
 							/>
-							<select
-								name="expected_salary"
-								onChange={handleChange}
-								value={applicationData.expected_salary}
-								className="w-full p-2 mb-2 border rounded"
-							>
-								<option value="">Select Expected Salary</option>
-								<option value="5000">5000</option>
-								<option value="10000">10000</option>
-								<option value="15000">15000</option>
-								<option value="20000">20000</option>
-								<option value="30000">30000</option>
-							</select>
 							<div className="mb-4">
 								<label className="block text-sm font-medium text-gray-700">
 									Upload Resume
@@ -463,6 +453,7 @@ const HomePage = () => {
 				<div className="fixed inset-0 backdrop-blur-md flex justify-center items-center z-50">
 					<div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
 						<h3 className="text-xl font-bold">{selectedJob?.title}</h3>
+						<p className="mt-2">Company: {selectedJob?.company}</p>
 						<p className="mt-2">Location: {selectedJob?.location}</p>
 						<p className="mt-2">Description: {selectedJob?.description}</p>
 						<p className="mt-2">Salary: {selectedJob?.salary}</p>

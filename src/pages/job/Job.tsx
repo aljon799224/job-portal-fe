@@ -10,6 +10,7 @@ interface Job {
 	salary: string;
 	user_id: number;
 	logo: string;
+	company: string;
 }
 
 const Jobs: React.FC = () => {
@@ -365,7 +366,8 @@ const Jobs: React.FC = () => {
 							</div>
 						)}
 						<h3 className="text-xl font-bold">{job.title}</h3>
-						<p className="mt-2 text-sm">Location: {job.location}</p>
+						<p className="mt-2 text-sm">Location: {job.company}</p>
+						<p className="mt-2 text-sm">Company: {job.location}</p>
 						<p className="mt-2 text-sm">
 							Description:{" "}
 							{job.description.length > 15
@@ -449,19 +451,6 @@ const Jobs: React.FC = () => {
 								placeholder="Mobile Number"
 								className="w-full p-2 mb-2 border rounded"
 							/>
-							<select
-								name="expected_salary"
-								onChange={handleChange}
-								value={applicationData.expected_salary}
-								className="w-full p-2 mb-2 border rounded"
-							>
-								<option value="">Select Expected Salary</option>
-								<option value="5000">5000</option>
-								<option value="10000">10000</option>
-								<option value="15000">15000</option>
-								<option value="20000">20000</option>
-								<option value="30000">30000</option>
-							</select>
 
 							<div className="mb-4">
 								<label className="block text-sm font-medium text-gray-700">
